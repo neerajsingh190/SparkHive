@@ -13,7 +13,7 @@ const path = require("path");
 app.use(cookieParser())
 const {promisify} = require('util')
 
-
+// changed here
 const storage = multer.diskStorage({
   destination: './images',
   filename: (req, file, cb) => {
