@@ -1,5 +1,4 @@
-        // NEERAJ 1
-
+require('dotenv').config();
 const express = require('express');
 const mysql = require('mysql2');
 const jwt = require("jsonwebtoken")
@@ -15,7 +14,8 @@ const path = require("path");
 app.use(cookieParser())
 const {promisify} = require('util')
 
-// changed here
+
+
 const storage = multer.diskStorage({
   destination: './images',
   filename: (req, file, cb) => {
@@ -24,12 +24,14 @@ const storage = multer.diskStorage({
   }
 })
 // Replace these with your MySQL database connection details
+
+
 const db = mysql.createPool({
-  host: 'localhost',
-  user: 'root',
-  password: 'root',
-  database: 'Ecommerce',
-  port:8889
+  host: process.env.DB_HOST,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_DATABASE,
+  port: process.env.DB_PORT
 });
 // const db2 = mysql.createConnection({
 //   host: 'localhost',
@@ -173,7 +175,7 @@ app.post('/login',async  (req,res)=>{
       }
        db.query('select * from customer where email = ?',[email],async( err , results)=>{
           console.log(results);
-          if(!results || results.length==0) // to compare the hashed password with the password present in req.body
+          if(!results || results.length==0) 
           {
              return res.status(401).json({
                   errors : 'email id or password is incorrect'
@@ -193,6 +195,7 @@ app.post('/login',async  (req,res)=>{
               const token = jwt.sign({id} , "mysupersecretpassword" ,{    // 1. making token using jasonWebToken 
                   expiresIn : "90d" 
               })
+              const firstname = results[0].first_name;
               console.log("The token is " + token); // token will be sent as a cookie , cookie and token will be same 
 
               // const cookieOptions = {       // setting cookies specifications 
@@ -201,7 +204,7 @@ app.post('/login',async  (req,res)=>{
               //     ),
               //     httpOnly : true 
               // }
-              res.json({ success, token }) ;
+              res.json({ success, token, firstname }) ;
 
               // res.cookie('jwt',token , cookieOptions )  // using token to create and sending cookie 
                                                       // name of cookie is jwt and value of cookie is token 
@@ -215,6 +218,7 @@ app.post('/login',async  (req,res)=>{
       
   }
 });  
+
 app.post('/signup',async  (req,res)=>{
 console.log("request coming")
   const { firstname , lastname, address ,zipcode ,phonenumber, email , password } = req.body
@@ -248,6 +252,7 @@ if (emptyFields.length > 0) {
   });
   return; // Return early to prevent further execution
 }
+
   db.query('select email from customer where email=?',[email], async (err, results) => {
     if (err) {
         console.log("error")
@@ -262,7 +267,7 @@ if (emptyFields.length > 0) {
             let hashPassword = await bcrypt.hash(password, 8); // encrypting the password using bcrypt 
             console.log(hashPassword);
                                                 // it doesnt matter what is the order of keys just key should match with the column name
-            db.query('insert into customer set ?',{ first_name : firstname , last_name: lastname,address : address, zip_code : zipcode,phone_number:phonenumber, password : hashPassword , email : email},(err,results)=>{
+            db.query('insert into customer set ?',{first_name : firstname , last_name: lastname,address : address, zip_code : zipcode,phone_number:phonenumber, password : hashPassword , email : email},(err,results)=>{
                 if(err){
                     console.log(err)
                 }
@@ -270,7 +275,8 @@ if (emptyFields.length > 0) {
                 {
                     console.log(results)
                     res.json({
-                        message: 'user registered'
+                        message: 'user registered',
+                        success:true
                     });
                 }
             })

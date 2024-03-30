@@ -6,9 +6,15 @@ const LoginSignup = () => {
   const numberRegex = /^[0-9]{10}$/;
 
   const validateIndianZipCode = (zipCode) => {
+    if (zipCode === "") {
+      return true;
+    }
     return indianZipCodeRegex.test(zipCode);
   };
   const validateNumber = (number) => {
+    if (number === "") {
+      return true;
+    }
     return numberRegex.test(number);
   };
 
@@ -60,12 +66,14 @@ const LoginSignup = () => {
       })
       .then((resp) => resp.json())
       .then((data) => dataObj=data);
-
+  // here we will get the return value i.e object in dataObj variable eg success , error etc
       if (dataObj.errors) {
         alert(dataObj.errors)
       }
       if (dataObj.success) {
         localStorage.setItem('auth-token',dataObj.token);
+        localStorage.setItem('isLoggedIn', true);
+        localStorage.setItem('firstname',dataObj.firstname);
         window.location.replace("/");
       }
    }
@@ -87,7 +95,10 @@ const LoginSignup = () => {
     if (dataObj.message) {
       alert(dataObj.message)
     }
-    
+    if (dataObj.success) {
+      //localStorage.setItem('auth-token',dataObj.token);
+      window.location.replace("/login");
+    }
    }
 
   return (
@@ -107,12 +118,13 @@ const LoginSignup = () => {
          <input type="email" placeholder="Email address" name="email"  onChange={changeHandler}/> 
          <input type="password" placeholder="Password" name="password" onChange={changeHandler}/> 
          
-
          </div>
 
          <button onClick={()=>{state==="Login"?login():signup()}}>Continue</button>
 
-         {state==="Login"?<p className="loginsignup-login" onClick={()=>setState("Sign up")}>Create an account <span onClick={()=>setState("Sign up")} >click here</span></p>:<p className="loginsignup-login" onClick={()=>setState("Login")}>Already have an account ?</p>}
+         {state==="Login"?<p className="loginsignup-login" onClick={()=>setState("Sign up")}>
+          Create an account <span onClick={()=>setState("Sign up")} >
+            click here</span></p>:<p className="loginsignup-login" onClick={()=>setState("Login")}>Already have an account ?</p>}
 
       </div>
 

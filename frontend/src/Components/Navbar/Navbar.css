@@ -10,7 +10,32 @@
     align-items: center;
     gap: 10px;
 }
-
+.welcome-logout {
+    display: flex;
+    align-items: center;
+  }
+  
+  .welcome-message {
+    font-weight: bold; /* Make the text bold */
+    color: #333333; /* Dark gray for white background */
+    margin-right: 10px;
+  }
+  
+  .logout-button {
+    background-color: #e0e0e0; /* Light gray */
+    color: #333333; /* Dark gray */
+    border: none;
+    padding: 5px 10px;
+    border-radius: 5px;
+    cursor: pointer;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
+    transition: background-color 0.2s ease-in-out; /* Smooth hover effect */
+  }
+  
+  .logout-button:hover {
+    background-color: #cccccc; /* Slightly darker gray on hover */
+  }
+  
 .nav-logo p {
      color : #171717;
      font-size: 38px;
