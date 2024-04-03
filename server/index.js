@@ -450,11 +450,16 @@ app.post('/addtocart', async (req, res) => {
 app.post('/getcart',async (req, res)=>{
   console.log("request coming ")
   const token = req.headers['auth-token'];
+  // check if there is login or not
   if (!token) return res.status(401).send({ message: 'Unauthorized: Missing auth token' });
 
   try {
     const decoded = jwt.verify(token, "mysupersecretpassword"); // Replace with your secret
     const customerId = decoded.id;
+
+     // as we are getting resp from the database which has to return but if  you don't want to return and also 
+    // want to store the result and it should move only when it has been fetched then use callback promise
+
     const findCartId = (callback) => {
       db.query('SELECT cart_id FROM Cart WHERE customer_id = ?', [customerId], (err, rows) => {
         if (err) {
@@ -463,7 +468,9 @@ app.post('/getcart',async (req, res)=>{
         callback(null, rows.length === 0 ? null : rows[0].cart_id);
       });
     };
+
     let cartId;
+
     await new Promise((resolve, reject) => {
       findCartId((error, id) => {
         if (error) {
@@ -473,8 +480,10 @@ app.post('/getcart',async (req, res)=>{
         resolve();
       });
     });
+
+    // Create a new cart if customer doesn't have one
+
     if (!cartId) {
-      // Create a new cart if customer doesn't have one
       const createCart = (callback) => {
         db.query('INSERT INTO Cart (customer_id, cart_name) VALUES (?, ?)', [customerId, 'My Cart'], (err, result) => {
           if (err) {
@@ -494,7 +503,8 @@ app.post('/getcart',async (req, res)=>{
         });
       });
     }
-
+  // from above we have cartId now. so now we will just return the cart items from this api
+  
     db.query('select * from  cart_items where cart_id = ?', [cartId], (err,results) => {
       if (err) {
         console.error(err);

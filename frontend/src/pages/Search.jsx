@@ -152,7 +152,7 @@ function Search() {
 
   const handleSearchClick = () => {
     const term =document.getElementById("searchInput").value;
-     setSearchTerm(document.getElementById("searchInput").value);
+     setSearchTerm(term);
     setSearchClicked(true);
     // setMinPrice(10);
     // Update minPrice and maxPrice based on filtered products (if searchTerm is not empty)
@@ -161,7 +161,7 @@ function Search() {
         const nameMatch = product.name.toLowerCase().includes(term.toLowerCase());
         return nameMatch;
       });
-      const filteredProductPrices = filteredProducts.map((product) => product.price);
+        const filteredProductPrices = filteredProducts.map((product) => product.price);
       setMinPrice(Math.min(...filteredProductPrices)); // Minimum price from filtered products
       setMaxPrice(Math.max(...filteredProductPrices)); // Maximum price from filtered products
     }
@@ -198,9 +198,9 @@ function Search() {
         className="search"
         id="searchInput"
       />
-      <button className="search_button" onClick={handleSearchClick}>
-        Search
-      </button>
+      <button className="search_button" onClick={handleSearchClick} style={{ cursor: 'pointer' }}>
+   Search
+     </button>
       <br />
       <br />
       <div className="search_box">
@@ -248,6 +248,7 @@ function Search() {
           {filteredProducts.map((product) => (
             
             <li key={product.product_id} className="product-card">
+        
               <Link style= {{textDecoration:'none' ,color:'#626262'}} to ={`/product/${product.product_id}`}>
               <img src={product.image_url} alt={product.name} />
               <h3>{product.name}</h3>

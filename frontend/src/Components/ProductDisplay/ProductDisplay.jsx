@@ -3,13 +3,20 @@ import "./ProductDisplay.css";
 import star_icon from "../Assets/star_icon.png";
 import star_dull_icon from "../Assets/star_dull_icon.png";
 import { ShopContext } from "../../Context/ShopContext";
+import { useNavigate } from 'react-router-dom';
 
 const ProductDisplay = (props) => {
   
-
+  // we are making a central ShopContext for to use in all components
   const product = props.product;
-  const {addToCart} = useContext(ShopContext);
-
+  // here we are using this in this component 
+  const {addToCart} = useContext(ShopContext); 
+  
+  const navigate = useNavigate();
+  const handleBuyNowClick = () => {
+    navigate(`/orders/${product.product_id || ''}`);
+  };
+  
   return (
     <div className="productdisplay">
       <div className="productdisplay-left">
@@ -50,7 +57,14 @@ const ProductDisplay = (props) => {
             <div>XXL</div>
           </div>
         </div>
-        <button onClick={()=>{addToCart(product.product_id)}}>ADD TO CART</button>
+        <button className="add-to-cart" onClick={()=>{addToCart(product.product_id)}}>ADD TO CART</button>
+        <button
+      style={{ textDecoration: 'none', color: '#fff' }}
+      className="buy-now-button"
+      onClick={handleBuyNowClick}
+    > Buy Now
+    </button>
+    
         <p className="productdisplay-right-category"><span>Category :</span> {product.category}</p>
         <p className="productdisplay-right-category"><span>Tags :</span> Modern, Latest</p>
       </div>
