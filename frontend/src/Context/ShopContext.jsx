@@ -1,5 +1,6 @@
 import React, { createContext, useEffect, useState } from "react";
 
+
 export const ShopContext = createContext(null);
 
 const ShopContextProvider = (props) => {
@@ -8,19 +9,21 @@ const ShopContextProvider = (props) => {
   
   const getDefaultCart = () => {
     let cart = {};
+    // i ki values hi product id ko map kr rhi h
     for (let i = 0; i < 300; i++) {
       cart[i] = 0;
     }
     return cart;
   };
-
+             
   const [cartItems, setCartItems] = useState(getDefaultCart());
-
+  // useEffect is giving the no of items of particular product-id which we are storing in an array 
   useEffect(() => {
     fetch('http://localhost:3001/api/products') 
           .then((res) => res.json()) 
           .then((data) => setProducts(data))
-
+  //  below logic is defined as if anyone is not invoking any fn then this will always run and fetch
+  //   the latest items present in cartItems and displays
     if(localStorage.getItem("auth-token"))
     {
       fetch('http://localhost:3001/getcart', {
@@ -33,7 +36,8 @@ const ShopContextProvider = (props) => {
       body: JSON.stringify(),
     })
       .then((resp) => resp.json())
-      .then((data) => {data.map((items)=>setCartItems((prev) => ({ ...prev, [items.product_id]: prev[items.product_id] + items.quantity })))});
+      .then((data) => 
+      {data.map((items)=>setCartItems((prev) => ({ ...prev, [items.product_id]: prev[items.product_id] + items.quantity })))});
     }
 
 }, [])
@@ -47,7 +51,7 @@ const ShopContextProvider = (props) => {
       }
     }
     return totalAmount;
-  };
+  }; 
 
   const getTotalCartItems = () => {
     let totalItem = 0;
