@@ -11,11 +11,8 @@ const ProductDisplay = (props) => {
   const product = props.product;
   // here we are using this in this component 
   const {addToCart} = useContext(ShopContext); 
-  
   const navigate = useNavigate();
-  const handleBuyNowClick = () => {
-    navigate(`/orders/${product.product_id || ''}`);
-  };
+
   
   return (
     <div className="productdisplay">
@@ -58,12 +55,14 @@ const ProductDisplay = (props) => {
           </div>
         </div>
         <button className="add-to-cart" onClick={()=>{addToCart(product.product_id)}}>ADD TO CART</button>
-        <button
-      style={{ textDecoration: 'none', color: '#fff' }}
-      className="buy-now-button"
-      onClick={handleBuyNowClick}
-    > Buy Now
-    </button>
+        
+  <button
+        style={{ textDecoration: 'none', color: '#fff' }}
+        className="buy-now-button"
+        onClick={()=>navigate('/order')}
+      >
+        Buy Now
+      </button>
     
         <p className="productdisplay-right-category"><span>Category :</span> {product.category}</p>
         <p className="productdisplay-right-category"><span>Tags :</span> Modern, Latest</p>
