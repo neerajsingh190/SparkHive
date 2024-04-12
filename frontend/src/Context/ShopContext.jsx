@@ -6,6 +6,7 @@ export const ShopContext = createContext(null);
 const ShopContextProvider = (props) => {
 
   const [products,setProducts] = useState([]);
+  const [token,setToken] =useState("");
   
   const getDefaultCart = () => {
     let cart = {};
@@ -15,10 +16,17 @@ const ShopContextProvider = (props) => {
     }
     return cart;
   };
-             
   const [cartItems, setCartItems] = useState(getDefaultCart());
   // useEffect is giving the no of items of particular product-id which we are storing in an array 
   useEffect(() => {
+    async function loadData() {
+     
+      if (localStorage.getItem("token")) {
+          setToken(localStorage.getItem("token"))
+      }
+  }
+  loadData()
+
     fetch('http://localhost:3001/api/products') 
           .then((res) => res.json()) 
           .then((data) => setProducts(data))
@@ -109,7 +117,7 @@ const ShopContextProvider = (props) => {
     }
   };
 
-  const contextValue = {products, getTotalCartItems, cartItems, addToCart, removeFromCart, getTotalCartAmount };
+  const contextValue = {products, getTotalCartItems, cartItems, addToCart, removeFromCart, getTotalCartAmount,token };
   return (
     <ShopContext.Provider value={contextValue}>
       {props.children}

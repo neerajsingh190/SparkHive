@@ -17,20 +17,19 @@ function App() {
     <div >
      
         <BrowserRouter>
-        {window.location.pathname !== '/orders' && <Navbar />}
-       <Search/>
+        <Navbar />
         <Routes>
           <Route path='/' element={<Shop/>}/>
           <Route path='/account' element={<Account/>}/>
-          <Route path='/orders' element={<Order/>}>
-            <Route path=':productId' element={<Order/>}/>
-          </Route>
+            <Route path='/orders/:productId' element={<Order />} />
+
           <Route path='/product' element={<Product/>}>
             <Route path=':productId' element={<Product/>}/>
           </Route>
           
           <Route path='/cart' element={<Cart/>}/>
-          {/* <Route path='/search' element={<Search/>}/> */}
+          <Route path='/order' element={<Order />} />
+          <Route path='/search' element={<Search/>}/>
           <Route path='/login' element={<LoginSignup/>}/>
         </Routes>
         </BrowserRouter>
