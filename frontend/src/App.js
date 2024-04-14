@@ -16,14 +16,13 @@ import Itemorder from './Components/Itemorder/Itemorder';
 function App() {
   return (
     <div >
+     
         <BrowserRouter>
-       <Navbar />
+        <Navbar />
         <Routes>
           <Route path='/' element={<Shop/>}/>
-          <Route path='/mens' element={<ShopCategory category="mens"/>}/>
           <Route path='/account' element={<Account/>}/>
-          <Route path='/womens' element={<ShopCategory category="womens"/>}/>
-          <Route path='/kids' element={<ShopCategory category="kids"/>}/>
+            <Route path='/orders/:productId' element={<Order />} />
 
           <Route path='/product' element={<Product/>}>
             <Route path=':productId' element={<Product/>}/>

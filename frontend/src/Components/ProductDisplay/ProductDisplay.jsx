@@ -12,7 +12,9 @@ const ProductDisplay = (props) => {
   // here we are using this in this component 
   const {addToCart} = useContext(ShopContext); 
   const navigate = useNavigate();
-
+  const handleBuyNowClick = () => {
+    navigate(`/orders/${product.product_id || ''}`);
+  };
   
   return (
     <div className="productdisplay">

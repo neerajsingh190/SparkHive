@@ -54,9 +54,9 @@ app.use('/images', express.static('images'));
 app.post('/api/add',(req,res)=>{
   let product = req.body;
   let success = false;
-  console.log(product)
-  console.log("request coming")
-  const query = "INSERT INTO product (name,image_url,category,price,offer_price,description,stock_quantity,manufacturer,weight) values(?,?,?,?,?,?,?,?)";
+  // console.log(product)
+  // console.log("request coming")
+  // const query = "INSERT INTO product (name,image_url,category,price,offer_price,description,stock_quantity,manufacturer,weight) values(?,?,?,?,?,?,?,?)";
   db.query("INSERT INTO product set ?",{name :product.name,image_url: product.image ,category :product.category,price :product.price,offer_price :product.offer_price,description:product.description,stock_quantity:product.stock_quantity,manufacturer:product.manufacturer,weight:product.weight},(err,results)=>{
       if(!err){
         success = true;
@@ -87,7 +87,7 @@ app.get('/api/products', (req, res) => {
   });
 });
 
-app.get('/get', (req, res) => {
+app.get('/api/customer', (req, res) => {
     
   var query = "select * from customer";
   db.query(query, (err, results) => {
@@ -218,6 +218,37 @@ app.post('/login',async  (req,res)=>{
       
   }
 });  
+
+app.get('/api/orders', (req, res) => {
+    
+  var query = "select * from orders";
+  //var query = "select customer.first_name, product.name from customer join product ON customer.customer_id = product.customer_id";
+  
+  db.query(query, (err, results) => {
+      if (!err) {
+          return res.status(200).json(results);
+      }
+      else {
+          return res.status(500).json(err);
+      }
+  })
+})
+
+app.get('/api/order', (req, res) => {
+  // var query = "select * from orders";
+
+  var query = "SELECT (@row_number := @row_number + 1) AS sr_no ,c.first_name AS customer_name , c.last_name AS customer_surname, p.name AS product_name, o.total_amount, o.status, o.order_date FROM Orders o INNER JOIN Customer c ON o.customer_id = c.customer_id INNER JOIN order_items oi ON o.order_id = oi.order_id INNER JOIN Product p ON oi.product_id = p.product_id CROSS JOIN (SELECT @row_number := 0) AS dummy ORDER BY o.order_date;";
+  db.query(query, (err, results) => {
+    if (!err) {
+        return res.status(200).json(results);
+    }
+    else {
+      console.log(err)
+        return res.status(500).json(err);
+    }
+})
+   } );
+
 
 app.post('/signup',async  (req,res)=>{
 console.log("request coming")

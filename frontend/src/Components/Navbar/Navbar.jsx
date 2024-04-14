@@ -27,7 +27,7 @@ const Navbar = () => {
       localStorage.removeItem('isLoggedIn');
       localStorage.removeItem('firstname');
       localStorage.removeItem('auth-token');
-      window.location.replace("/");// Redirect 
+      window.location.replace("/");
     };
     
   return (
