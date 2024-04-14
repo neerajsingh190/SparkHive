@@ -11,6 +11,7 @@ import LoginSignup from './pages/LoginSignup'
 import Account  from './pages/Account'
 import Search from './pages/Search'
 import Order from './Components/Order/Order';
+import Itemorder from './Components/Itemorder/Itemorder';
 
 function App() {
   return (
@@ -26,6 +27,10 @@ function App() {
 
           <Route path='/product' element={<Product/>}>
             <Route path=':productId' element={<Product/>}/>
+          </Route>
+
+          <Route path='/itemorder' element={<Itemorder/>}>
+            <Route path=':itemid' element={<Itemorder/>}/>
           </Route>
           
           <Route path='/cart' element={<Cart/>}/>

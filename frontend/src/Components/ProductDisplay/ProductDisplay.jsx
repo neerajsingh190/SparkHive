@@ -59,7 +59,7 @@ const ProductDisplay = (props) => {
   <button
         style={{ textDecoration: 'none', color: '#fff' }}
         className="buy-now-button"
-        onClick={()=>navigate('/order')}
+        onClick={()=>navigate(`/itemorder/${product.product_id}`)}
       >
         Buy Now
       </button>
