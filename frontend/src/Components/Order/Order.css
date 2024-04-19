@@ -85,6 +85,9 @@
     border-radius: 4px;
     cursor: pointer;
 }
+.error-input {
+    border: 40px solid red; /* Example styling for error input */
+  }
 
 @media (max-width:700px) {
     .place-order{

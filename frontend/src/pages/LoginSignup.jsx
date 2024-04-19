@@ -52,7 +52,7 @@ const LoginSignup = () => {
       if (!isValidNumber) {
         setNumError("Invalid Phone number. Please enter a 10-digit phone number");
       } else {
-        setNumError(''); // Clear error on valid input
+        setNumError(""); // Clear error on valid input
       }
     }
     

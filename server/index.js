@@ -1,4 +1,6 @@
 require('dotenv').config();
+
+const Razorpay = require('razorpay');
 const express = require('express');
 const mysql = require('mysql2');
 const jwt = require("jsonwebtoken")
@@ -42,6 +44,7 @@ const db = mysql.createPool({
 // });
 app.use('/images', express.static('images'));
 
+
 // Connect to MySQL database
 // db.connect((err) => {
 //   if (err) {
@@ -50,6 +53,162 @@ app.use('/images', express.static('images'));
 //     console.log('Connected to MySQL database');
 //   }
 // });
+
+
+
+app.get("/api/getkey", (req, res) => {
+  try {
+    // Check if RAZORPAY_API_KEY environment variable is set
+    if (!process.env.RAZORPAY_API_KEY) {
+      throw new Error("RAZORPAY_API_KEY environment variable is not set.");
+    }
+
+    res.status(200).json({ key: process.env.RAZORPAY_API_KEY });
+  } catch (error) {
+    console.error("Error retrieving Razorpay key:", error);
+    res.status(500).json({ error: "Failed to retrieve key" }); // Send a generic error to client
+  }
+});
+
+
+app.post('/api/checkout', async(req, res) => {
+  try {
+
+    const amount =Math.floor(Number(req.body.amount)); // Validate amount
+    if (isNaN(amount) || amount <= 0) {
+      throw new Error("Invalid amount provided.");
+    }
+     console.log(amount)
+     const instance = new Razorpay({
+      key_id: process.env.RAZORPAY_API_KEY,
+      key_secret: process.env.RAZORPAY_API_SECRET,
+    });
+
+    const options = {
+      amount,
+      currency: "INR"
+    };
+
+  const order = await instance.orders.create(options, function(err, order) {
+    if(err){
+      return console.error("error is coming",err);
+    }
+  console.log(order);
+}); // Assuming 'instance' is your Razorpay instance
+
+    res.status(200).json(order);
+  } catch (error) {
+    console.error("Error creating order:", error);
+    res.status(700).json({ error: error.message || "Failed to create order" }); // Send a more specific error message if possible
+  }
+});
+
+//storing data to shipping address table
+app.post('/api/storeshippingaddress',async (req, res) => {
+  try {
+    console.log("API hitting")
+    // Authentication and data extraction
+   // const success =false;
+    const token = req.headers['auth-token'];
+    if (!token) {
+      throw new Error('Unauthorized: Missing auth token');
+    }
+
+    const decoded = jwt.verify(token, "mysupersecretpassword"); // Replace with your secret
+    const customer_id = decoded.id;
+
+    const {
+      firstName,
+      lastName,
+      addressLine1, // Use address_line1 from schema
+      addressLine2, // Use address_line2 from schema
+      city,
+      state,
+      postalCode, // Use postal_code from schema
+      phoneNumber,
+      is_default = 0
+    } = req.body;
+
+    // Validate input data (optional, can be improved)
+    if (!customer_id || !firstName || !lastName || !addressLine1 || !city || !postalCode) {
+      throw new Error('Missing required fields');
+    }
+
+    // Database interaction
+    const sql = `
+      INSERT INTO shipping_address (
+        customer_id,
+        first_name,
+        last_name,
+        address_line1,
+        address_line2,
+        city,
+        state,
+        postal_code,
+        phone_number,
+        is_default
+      )
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `;
+
+    db.query(sql, [
+      customer_id,
+      firstName,
+      lastName,
+      addressLine1,
+      addressLine2,
+      city,
+      state,
+      postalCode,
+      phoneNumber,
+      is_default
+    ], (err, result) => {
+      if (err) {
+        throw err; // Re-throw the error for handling in the catch block
+      }
+
+      res.json({ success: true, message: 'Shipping address stored successfully' });
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(800).json({ error: error.message || 'Failed to store shipping address' });
+  }
+});
+
+
+// app.post('/api/paymentverification',(req,res)=>{
+//   const { razorpay_order_id, razorpay_payment_id, razorpay_signature } =
+//     req.body;
+
+//   const body = razorpay_order_id + "|" + razorpay_payment_id;
+
+//   const expectedSignature = crypto
+//     .createHmac("sha256", process.env.RAZORPAY_APT_SECRET)
+//     .update(body.toString())
+//     .digest("hex");
+
+//   const isAuthentic = expectedSignature === razorpay_signature;
+
+//   if (isAuthentic) {
+//     // Database comes here
+
+//      Payment.create({
+//       razorpay_order_id,
+//       razorpay_payment_id,
+//       razorpay_signature,
+//     });
+
+//     res.redirect(
+//       `http://localhost:3000/paymentsuccess?reference=${razorpay_payment_id}`
+//     );
+//   } else {
+//     res.status(400).json({
+//       success: false,
+//     });
+//   }
+// }
+// );
+
 
 app.post('/api/add',(req,res)=>{
   let product = req.body;
@@ -66,6 +225,7 @@ app.post('/api/add',(req,res)=>{
   })
 })
 const upload = multer({storage: storage})
+
 app.post("/upload",upload.single('product') ,(req,res)=>{
   res.json({
     success: 1,

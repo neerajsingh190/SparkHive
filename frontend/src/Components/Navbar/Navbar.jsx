@@ -32,10 +32,12 @@ const Navbar = () => {
     
   return (
     <div className='navbar'>
+      <Link style= {{textDecoration:'none' ,color:'#626262'}} to ='/'>
       <div className="nav-logo">
         <img src={logo} alt="" />
         <p>E-shop</p>
       </div>
+      </Link>
         <ul className='nav-menu'> 
             <li onClick={()=>{setMenu("shop")}}><Link style= {{textDecoration:'none' ,color:'#626262'}}to= '/'>Shop</Link>{menu==="shop"?<hr/>:<></>}</li>
             {/* <li onClick={()=>{setMenu("mens")}}><Link style= {{textDecoration:'none',color:'#626262'}}to = '/mens'>Men</Link>{menu==="mens"?<hr/>:<></>}</li>
@@ -57,7 +59,7 @@ const Navbar = () => {
 
 
             <Link to = '/cart'><img src={cart_icon} alt="" /></Link>
-            <div className="nav-cart-count">0</div>
+            <div className="nav-cart-count">3</div>
         </div>
         </div>
   )
