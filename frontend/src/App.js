@@ -12,6 +12,7 @@ import Account  from './pages/Account'
 import Search from './pages/Search'
 import Order from './Components/Order/Order';
 import Itemorder from './Components/Itemorder/Itemorder';
+import PaymentSuccess from './pages/PaymentSuccess';
 
 function App() {
   return (
@@ -31,7 +32,8 @@ function App() {
           <Route path='/itemorder' element={<Itemorder/>}>
             <Route path=':itemid' element={<Itemorder/>}/>
           </Route>
-          
+
+          <Route path="/paymentsuccess" element={<PaymentSuccess />} />
           <Route path='/cart' element={<Cart/>}/>
           <Route path='/order' element={<Order />} />
           <Route path='/search' element={<Search/>}/>

@@ -156,41 +156,25 @@ const onChangeHandler = (event) => {
 //     }
 //   };
 const placeOrder = async (amount,formData) => {
-    try {
-
-      if(localStorage.getItem("auth-token"))
-      {
-        fetch('http://localhost:3001/api/storeshippingaddress', {
-        method: 'POST',
-        headers: {
-          Accept:'application/form-data',
-          'auth-token':`${localStorage.getItem("auth-token")}`,
-          'Content-Type':'application/json',
-        },
-        body: JSON.stringify(formData),
-      })
-      .then((err) => console.log(err))
-      }
-  
-     // 1. Get Razorpay Key
-      const { data: { key } } = await axios.get("http://www.localhost:3001/api/getkey");
   
       // 2. Create Order on Backend
-     
-        const { data: { order } } = await axios.post("http://localhost:3001/api/checkout",{amount})
-        console.log("Order created:",order);
+      await axios.post("http://localhost:3001/api/checkout",{amount})
+      .then(
+          res=>{
+              console.log("response from checkout id:",res.data.order.id);
   
   
       //3. Create Razorpay Payment Object
+    
       const options = {
-        key,
-        amount:amount*100,
+        key:"rzp_test_GHSiaTeuXqZLCT",
+        amount:4000,
         currency: "INR",
         name: "NEERAJ SINGH",
         description: "Tutorial of RazorPay",
         image: "",
-        order_id: Order.id,
-        // callback_url: "", // Optional: Set a callback URL for post-payment updates
+        order_id: res.data.order.id,
+        callback_url: "http://localhost:3001/api/paymentverification", 
         prefill: {
           name: "NEERAJ SINGH",
           email: "neeraj199322@gmail.com",
@@ -210,11 +194,12 @@ const placeOrder = async (amount,formData) => {
   
       // 4. Open Razorpay Payment Page
        razorpay.open(); // Initiate payment flow
-      
-    } catch (error) {
-      console.error("Error creating order:", error);
-      // Handle errors gracefully, e.g., display error message to user
-    }
+
+          }
+    ).catch(
+      error=>{console.log(error)
+      }
+  )
   };
 
 useEffect(() => {

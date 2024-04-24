@@ -1,5 +1,6 @@
 require('dotenv').config();
 
+const crypto = require('crypto');
 const Razorpay = require('razorpay');
 const express = require('express');
 const mysql = require('mysql2');
@@ -73,8 +74,7 @@ app.get("/api/getkey", (req, res) => {
 
 app.post('/api/checkout', async(req, res) => {
   try {
-
-    const amount =Math.floor(Number(req.body.amount)); // Validate amount
+    const amount =Math.floor(Number(req.body.amount)*100); // Validate amount
     if (isNaN(amount) || amount <= 0) {
       throw new Error("Invalid amount provided.");
     }
@@ -89,14 +89,12 @@ app.post('/api/checkout', async(req, res) => {
       currency: "INR"
     };
 
-  const order = await instance.orders.create(options, function(err, order) {
-    if(err){
-      return console.error("error is coming",err);
-    }
-  console.log(order);
-}); // Assuming 'instance' is your Razorpay instance
+  const order = await instance.orders.create(options);
 
-    res.status(200).json(order);
+    return res.json({
+      Status:true,
+      order,
+    });
   } catch (error) {
     console.error("Error creating order:", error);
     res.status(700).json({ error: error.message || "Failed to create order" }); // Send a more specific error message if possible
@@ -116,6 +114,19 @@ app.post('/api/storeshippingaddress',async (req, res) => {
 
     const decoded = jwt.verify(token, "mysupersecretpassword"); // Replace with your secret
     const customer_id = decoded.id;
+
+    const checkDuplicateSql = `
+    SELECT * FROM shipping_address
+    WHERE customer_id = ? AND address_line1 = ? AND city = ? AND postal_code = ?
+`;
+db.query(checkDuplicateSql, [customer_id, addressLine1, city, postalCode], (err, existingAddresses) => {
+  if (err) {
+      throw err;
+  }
+  if (existingAddresses.length > 0) {
+    // Address already exists, handle the case (e.g., send an error message)
+    res.status(409).json({ error: 'Duplicate address found. Please enter a unique address.' });
+} else {
 
     const {
       firstName,
@@ -169,6 +180,8 @@ app.post('/api/storeshippingaddress',async (req, res) => {
 
       res.json({ success: true, message: 'Shipping address stored successfully' });
     });
+  }
+});
   } catch (error) {
     console.error(error);
     res.status(800).json({ error: error.message || 'Failed to store shipping address' });
@@ -177,29 +190,37 @@ app.post('/api/storeshippingaddress',async (req, res) => {
 
 
 // app.post('/api/paymentverification',(req,res)=>{
+//   console.log(req.body);
+//   //console.log(process.env.RAZORPAY_API_SECRET);
 //   const { razorpay_order_id, razorpay_payment_id, razorpay_signature } =
 //     req.body;
 
+//   if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
+//     res.status(400).json({
+//       success: false,
+//       error: 'Missing  payment information.'
+//     });
+//   }
 //   const body = razorpay_order_id + "|" + razorpay_payment_id;
 
 //   const expectedSignature = crypto
-//     .createHmac("sha256", process.env.RAZORPAY_APT_SECRET)
+//     .createHmac("sha256",process.env.RAZORPAY_API_SECRET)
 //     .update(body.toString())
 //     .digest("hex");
 
 //   const isAuthentic = expectedSignature === razorpay_signature;
 
 //   if (isAuthentic) {
-//     // Database comes here
+//   //   // Database comes here
 
-//      Payment.create({
-//       razorpay_order_id,
-//       razorpay_payment_id,
-//       razorpay_signature,
-//     });
+//   //    Payment.create({
+//   //     razorpay_order_id,
+//   //     razorpay_payment_id,
+//   //     razorpay_signature,
+//   //   });
 
 //     res.redirect(
-//       `http://localhost:3000/paymentsuccess?reference=${razorpay_payment_id}`
+//       `http://localhost:3001/paymentsuccess?reference=${razorpay_payment_id}`
 //     );
 //   } else {
 //     res.status(400).json({
@@ -209,7 +230,109 @@ app.post('/api/storeshippingaddress',async (req, res) => {
 // }
 // );
 
+// app.post('/api/paymentverification', (req, res) => {
+//   try {
 
+//   console.log("kch to aaye",req.body);
+
+//   // const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body;
+
+//   // console.log("information",razorpay_order_id,razorpay_payment_id,razorpay_signature)
+//   // if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
+//   //   return res.status(400).json({
+//   //     success: false,
+//   //     error: 'Missing payment information.',
+//   //   });
+//   // }
+//   // const expectedSignature = crypto
+//   //   .createHmac("sha256", "dKndWbYgPJHgFRoQRpr4VjHY")
+//   //   .update(razorpay_order_id + "|" + razorpay_payment_id)
+//   //   .digest("hex");
+
+//   // const isAuthentic = expectedSignature === razorpay_signature;
+
+//   // Logic to handle payment verification and update order status (replace "..." with your code)
+//   // let verificationResult;
+//   // try {
+//   //   // ... (your payment verification logic using Razorpay API)
+//   //   verificationResult = { success: true, message: "Payment verified" };
+//   // } catch (error) {
+//   //   verificationResult = { success: false, error: error.message };
+//   // }
+
+//   // Send the final response only once
+//  // res.status(200).json(verificationResult);
+// }catch (error) {
+//     console.log(error);
+//   }
+// });
+app.post('/api/paymentverification',(req,res)=>{
+  try {
+    console.log("header",req.body);
+    const { razorpay_order_id, razorpay_payment_id, razorpay_signature}=req.body;
+    
+    const body = razorpay_order_id + "|" + razorpay_payment_id;
+    const expectedSignature = crypto
+      .createHmac("sha256", "dKndWbYgPJHgFRoQRpr4VjHY")
+      .update(body.toString())
+      .digest("hex");
+    // console.log("sign recieved", razorpay_signature);
+    // console.log("sign generated", expectedSignature);
+    const isAuthentic = razorpay_signature === expectedSignature;
+    // console.log("isAuthentic",isAuthentic);
+    if (isAuthentic) {
+      //database comes here
+        // conn.query("SELECT ID FROM Customers WHERE UserID=?",[bookingDatas.userId], (err, rows, fields) => {
+        //   const CustomerID = rows[0].ID;
+        //   console.log("CustomerId",CustomerID)
+        //       conn.query("INSERT INTO saloon.appointments(CustomerID,BranchID,Date,Status,SlotTime)VALUES(?,?,?,'Booked',?)",[CustomerID,bookingDatas.branchId,bookingDatas.date,bookingDatas.slot],(err,rows,fields)=>{
+        //           if(!err)
+        //           {
+        //               console.log("Rows",rows)
+        //               if(Array.isArray(bookingDatas.services)){
+        //                   bookingDatas.services.forEach(element => {
+        //                       console.log("Services into database ",element)
+        //                       conn.query("INSERT INTO AppointmentServices(AppointmentID, ServiceID) VALUES(?,?)", [rows.insertId, element.sId], (err,rows, fields)=>{
+        //                           if(err){
+        //                               console.log(err);
+        //                           }
+        //                       })
+                              
+        //                   });
+        //               }
+        //               else {
+        //                   conn.query("INSERT INTO AppointmentServices (AppointmentID, ServiceID) VALUES(?,?)", [rows.insertId, bookingDatas.services.sId], (err,rows, fields)=>{})
+        //               }
+        //               // conn.query("select sum(ser.Price) as TotalPrice from appointmentservices as apSer join services as ser on apSer.ServiceID=ser.sId where AppointmentID=?",[rows.insertId],(err,serAmount,fields)=>{
+        //                   conn.query("INSERT INTO payments(AppointmentID,Amount,PaymentMode)values(?,?,?)",[rows.insertId,bookingDatas.totalAmount,bookingDatas.paymentMode],(err,ser,fields)=>{
+        //                       if(err){
+        //                           console.log(err);
+        //                       }
+        //                       else{
+          //                       }   
+          //                   })
+          //               // })
+          
+          //           }
+          //     else{
+            //         console.log(err);
+            //     }                
+            // })
+            
+            //   }
+            
+            
+            // )
+          //   res.redirect(http://localhost:3001/paymentsuccess?reference=${razorpay_payment_id})
+           } 
+          else {
+            // console.log("verification",req.body)
+            return res.json({ Status: false });
+    }
+  } catch (error) {
+    console.log(error);
+  }
+})
 app.post('/api/add',(req,res)=>{
   let product = req.body;
   let success = false;
