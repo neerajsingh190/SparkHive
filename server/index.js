@@ -62,7 +62,6 @@ app.get("/api/getkey", (req, res) => {
     if (!process.env.RAZORPAY_API_KEY) {
       throw new Error("RAZORPAY_API_KEY environment variable is not set.");
     }
-
     res.status(200).json({ key: process.env.RAZORPAY_API_KEY });
   } catch (error) {
     console.error("Error retrieving Razorpay key:", error);
@@ -73,7 +72,6 @@ app.get("/api/getkey", (req, res) => {
 
 app.post('/api/checkout', async(req, res) => {
   try {
-
     const amount =Math.floor(Number(req.body.amount)); // Validate amount
     if (isNaN(amount) || amount <= 0) {
       throw new Error("Invalid amount provided.");
@@ -81,7 +79,7 @@ app.post('/api/checkout', async(req, res) => {
      console.log(amount)
      const instance = new Razorpay({
       key_id: process.env.RAZORPAY_API_KEY,
-      key_secret: process.env.RAZORPAY_API_SECRET,
+      key_secret: process.env.RAZORPAY_API_SECRET
     });
 
     const options = {
@@ -89,7 +87,7 @@ app.post('/api/checkout', async(req, res) => {
       currency: "INR"
     };
 
-  const order = await instance.orders.create(options, function(err, order) {
+  const order =  instance.orders.create(options, function(err, order) {
     if(err){
       return console.error("error is coming",err);
     }
@@ -234,8 +232,46 @@ app.post("/upload",upload.single('product') ,(req,res)=>{
 })
 // Define a route to fetch products from the database
 app.get('/api/products', (req, res) => {
-  
-  const query = 'SELECT * FROM product';
+  // const query = 'SELECT * from Product inner join product_categories on Product.product_id = product_categories.product_id inner join Categories on product_categories.category_id = Categories.category_id;';
+  const query = 'SELECT * from Product ';
+  db.query(query, (err, results) => {
+    if (err) {
+      console.error('Error querying MySQL database:', err);
+      res.status(500).send('Internal Server Error');
+    } else {
+      res.json(results);
+    }
+  });
+});
+app.post('/api/productsbycategory', (req, res) => {
+  const { category_id } = req.body;
+  console.log("request comming in category ")
+  // const query = 'SELECT * from Product inner join product_categories on Product.product_id = product_categories.product_id inner join Categories on product_categories.category_id = Categories.category_id;';
+  const query = 'select * from Product inner join product_categories on Product.product_id = product_categories.product_id inner join Categories on product_categories.category_id = Categories.category_id and Categories.category_id=? limit 5;';
+  db.query(query,[category_id],(err, results) => {
+    if (err) {
+      console.error('Error querying MySQL database:', err);
+      res.status(500).send('Internal Server Error');
+    } else {
+      console.log(results)
+      res.json(results);
+    }
+  });
+});
+app.get('/api/catproducts', (req, res) => {
+  const query = 'SELECT * from Product inner join product_categories on Product.product_id = product_categories.product_id inner join Categories on product_categories.category_id = Categories.category_id;';
+  // const query = 'SELECT * from Product ';
+  db.query(query, (err, results) => {
+    if (err) {
+      console.error('Error querying MySQL database:', err);
+      res.status(500).send('Internal Server Error');
+    } else {
+      res.json(results);
+    }
+  });
+});
+app.get('/api/categories', (req, res) => {
+  const query = 'SELECT * from categories';
 
   db.query(query, (err, results) => {
     if (err) {
@@ -320,7 +356,7 @@ app.get('/api/customer', (req, res) => {
 // });
 
 app.post('/login',async  (req,res)=>{
-  console.log("request coming")
+  // console.log("request coming")
   let success = false;
   console.log(req.body)
   try {
@@ -364,7 +400,7 @@ app.post('/login',async  (req,res)=>{
               //     ),
               //     httpOnly : true 
               // }
-              res.json({ success, token, firstname }) ;
+              res.json({ success, token, firstname ,id}) ;
 
               // res.cookie('jwt',token , cookieOptions )  // using token to create and sending cookie 
                                                       // name of cookie is jwt and value of cookie is token 
@@ -379,12 +415,89 @@ app.post('/login',async  (req,res)=>{
   }
 });  
 
+app.post('/updateprofile',async  (req,res)=>{
+  // console.log("request coming")
+  let success = false;
+  const { firstname , lastname,phonenumber, email ,id} = req.body
+  console.log(req.body)
+  const emptyFields = [];
+  if (!firstname) {
+    emptyFields.push("First Name");
+  }
+  if (!lastname) {
+    emptyFields.push("Last Name");
+  }
+  if (!phonenumber) {
+    emptyFields.push("Phone Number");
+  }
+  if (!email) {
+    emptyFields.push("Email");
+  }
+  if (emptyFields.length > 0) {
+    res.status(400).json({
+      errors: `Please fill in the following required fields: ${emptyFields.join(', ')}`,
+    });
+    return; // Return early to prevent further execution
+  }
+  try {
+      
+       db.query('select * from customer where customer_id = ?',[id],async( err , results)=>{
+          console.log(results);
+          if(!results || results.length==0) 
+          {
+             return res.status(401).json({
+                  errors : 'user doesnt exist'
+          })
+          } 
+          else
+             { 
+              db.query('update Customer set first_name=?, last_name =? ,email=?,phone_number=?  where customer_id=?;',[firstname ,lastname,email,phonenumber,id],(err,results)=>{
+                if(err){
+                    console.log(err)
+                }
+                else
+                {
+                    console.log(results)
+                    res.json({
+                        message: 'user updated',
+                        success:true
+                    });
+                }
+            })
+             }
+
+      })
+  } catch (err) {
+      
+  }
+});  
+
 app.get('/api/orders', (req, res) => {
     
   var query = "select * from orders";
   //var query = "select customer.first_name, product.name from customer join product ON customer.customer_id = product.customer_id";
   
   db.query(query, (err, results) => {
+      if (!err) {
+          return res.status(200).json(results);
+      }
+      else {
+          return res.status(500).json(err);
+      }
+  })
+})
+app.post('/api/orderid', (req, res) => {
+  console.log("req coming")
+  const token = req.headers['auth-token'];
+  if (!token) return res.status(401).send({ message: 'Unauthorized: Missing auth token' });
+  const decoded = jwt.verify(token, "mysupersecretpassword"); // Synchronous function 
+  const customerId = decoded.id;
+
+
+  var query = "select * from orders where customer_id =?";
+
+  
+  db.query(query,[customerId], (err, results) => {
       if (!err) {
           return res.status(200).json(results);
       }
@@ -411,7 +524,7 @@ app.get('/api/order', (req, res) => {
 
 
 app.post('/signup',async  (req,res)=>{
-console.log("request coming")
+// console.log("request coming")
   const { firstname , lastname, address ,zipcode ,phonenumber, email , password } = req.body
   const emptyFields = [];
 if (!firstname) {
@@ -524,7 +637,10 @@ app.post('/addtocart', async (req, res) => {
   if (!token) return res.status(401).send({ message: 'Unauthorized: Missing auth token' });
 
   try {
-    const decoded = jwt.verify(token, "mysupersecretpassword"); // Replace with your secret
+    const decoded = jwt.verify(token, "mysupersecretpassword"); // Synchronous function 
+    // asnchronous function is also available in jsonwebtoke : verifySync which will take a callback function which will be executed after the 
+    // function complition 
+    
     const customerId = decoded.id;
 
     // 2. Find cart ID for the customer
@@ -639,7 +755,7 @@ app.post('/addtocart', async (req, res) => {
 });
 
 app.post('/getcart',async (req, res)=>{
-  console.log("request coming ")
+  // console.log("request coming ")
   const token = req.headers['auth-token'];
   // check if there is login or not
   if (!token) return res.status(401).send({ message: 'Unauthorized: Missing auth token' });
@@ -738,13 +854,44 @@ app.post('/removefromcart',async (req, res)=>{
     const { itemId } = req.body;
     if (!itemId) return res.status(400).send({ message: 'Missing item ID in request body' });
 
+    const checkQuanatity = (callback) => {
+      db.query('SELECT quantity FROM cart_items WHERE cart_id = ?', [cartId], (err, rows) => {
+        if (err) {
+          return callback(err);
+        }
+        callback(null, rows.length === 0 ? null : rows[0].quantity);
+      });
+    };
+    let quantity;
+    await new Promise((resolve, reject) => {
+      checkQuanatity((error, count) => {
+        if (error) {
+          return reject(error);
+        }
+        quantity = count;
+        resolve();
+      });
+    });
+
+console.log(quantity);
+if(quantity==1){
     db.query('delete from  cart_items where product_id = ? and cart_id = ?', [itemId , cartId], (err,results) => {
       if (err) {
         console.error(err);
         return res.status(500).send({ message: 'Internal server error' });
       }
       res.status(200).json(results);
-    });
+    });}
+    else
+    {
+      db.query('update cart_items set quantity = quantity-1 where product_id = ? and cart_id = ?', [itemId , cartId], (err,results) => {
+        if (err) {
+          console.error(err);
+          return res.status(500).send({ message: 'Internal server error' });
+        }
+        res.status(200).json(results);
+      });
+    }
   } catch (error) {
     console.error(error);
     res.status(500).send({ message: 'Internal server error' });

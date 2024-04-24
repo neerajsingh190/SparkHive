@@ -157,7 +157,7 @@ const onChangeHandler = (event) => {
 //   };
 const placeOrder = async (amount,formData) => {
     try {
-
+        const dataobj= {};
       if(localStorage.getItem("auth-token"))
       {
         fetch('http://localhost:3001/api/storeshippingaddress', {
@@ -169,7 +169,9 @@ const placeOrder = async (amount,formData) => {
         },
         body: JSON.stringify(formData),
       })
-      .then((err) => console.log(err))
+      .then((resp) => resp.json())
+      .then((data) => console.log(data))
+
       }
   
      // 1. Get Razorpay Key
@@ -230,8 +232,8 @@ useEffect(() => {
 
     return (
   
-      <form className='place-order'>
-          <div className="place-order-left">
+      <form className='place-order mx-4'>
+          <div className="place-order-left px-6">
               <p className='title'>Delivery Information</p>
               <div className="multi-field">
                   <input type="text" name='firstName' onChange={onChangeHandler} value={formData.firstName} placeholder='First name' required className={errors.firstName && 'error-input'}/>

@@ -9,6 +9,7 @@ const CartItems = () => {
   const {cartItems,removeFromCart,getTotalCartAmount} = useContext(ShopContext);
   const navigate = useNavigate();
   console.log(cartItems);
+  
 
   return (
     <div className="cartitems">
@@ -29,9 +30,9 @@ const CartItems = () => {
                     <div className="cartitems-format-main cartitems-format">
                       <img className="cartitems-product-icon" src={e.image_url} alt="" />
                       <p cartitems-product-title>{e.name}</p>
-                      <p>${e.price}</p>
+                      <p>Rs{e.price}</p>
                       <button className="cartitems-quantity">{cartItems[e.product_id]}</button>
-                      <p>${e.price*cartItems[e.product_id]}</p>
+                      <p>Rs{e.price*cartItems[e.product_id]}</p>
                       <img onClick={()=>{removeFromCart(e.product_id)}} className="cartitems-remove-icon" src={cross_icon} alt="" />
                     </div>
                      <hr />
@@ -46,7 +47,7 @@ const CartItems = () => {
           <div>
             <div className="cartitems-total-item">
               <p>Subtotal</p>
-              <p>${getTotalCartAmount()}</p>
+              <p>Rs{getTotalCartAmount()}</p>
             </div>
             <hr />
             <div className="cartitems-total-item">
@@ -56,7 +57,7 @@ const CartItems = () => {
             <hr />
             <div className="cartitems-total-item">
               <h3>Total</h3>
-              <h3>${getTotalCartAmount()}</h3>
+              <h3>Rs{getTotalCartAmount()}</h3>
             </div>
           </div>
           <button onClick={()=>navigate('/order') }>PROCEED TO CHECKOUT</button>

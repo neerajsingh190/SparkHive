@@ -127,46 +127,58 @@
 // export default Search;
 
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect} from "react";
+import { useSearchParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom'
 import "./CSS/ProductCard.css";
 import { Link } from 'react-router-dom'
 
+
 function Search() {
   const [products, setProducts] = useState([]);
-  const [searchTerm, setSearchTerm] = useState("");
+  const [categories, setCategories] = useState([]);
+const {value} = useParams();
+  const [searchTerm, setSearchTerm] = useState(value);
   const [minPrice, setMinPrice] = useState(0); // Initial minimum price
   const [maxPrice, setMaxPrice] = useState(1000); // Initial maximum price
   const [selectedCategory, setSelectedCategory] = useState("");
 
-  const [searchClicked, setSearchClicked] = useState(false);
-
+  const [searchClicked, setSearchClicked] = useState(true);
   useEffect(() => {
     const fetchData = async () => {
-      const response = await fetch("http://localhost:3001/api/products");
+      const response = await fetch("http://localhost:3001/api/catproducts");
       const data = await response.json();
+      console.log(data)
       setProducts(data);
     };
-
+    const fetchCatData = async () => {
+      const response = await fetch("http://localhost:3001/api/categories");
+      const data = await response.json();
+      setCategories(data);
+    };
     fetchData();
+    fetchCatData();
+    uniqueProductIds.clear();
   }, []);
+  
 
-  const handleSearchClick = () => {
-    const term =document.getElementById("searchInput").value;
-     setSearchTerm(term);
-    setSearchClicked(true);
-    // setMinPrice(10);
-    // Update minPrice and maxPrice based on filtered products (if searchTerm is not empty)
-    if (true) {
-      const filteredProducts=products.filter((product) => {
-        const nameMatch = product.name.toLowerCase().includes(term.toLowerCase());
-        return nameMatch;
-      });
-        const filteredProductPrices = filteredProducts.map((product) => product.price);
-      setMinPrice(Math.min(...filteredProductPrices)); // Minimum price from filtered products
-      setMaxPrice(Math.max(...filteredProductPrices)); // Maximum price from filtered products
-    }
+  // const handleSearchClick = () => {
+  //   const term =document.getElementById("searchInput").value;
+  //   //  setSearchTerm(term);
+  //   setSearchClicked(true);
+  //   // setMinPrice(10);
+  //   // Update minPrice and maxPrice based on filtered products (if searchTerm is not empty)
+  //   if (true) {
+  //     const filteredProducts=products.filter((product) => {
+  //       const nameMatch = product.name.toLowerCase().includes(term.toLowerCase());
+  //       return nameMatch;
+  //     });
+  //       const filteredProductPrices = filteredProducts.map((product) => product.price);
+  //     setMinPrice(Math.min(...filteredProductPrices)); // Minimum price from filtered products
+  //     setMaxPrice(Math.max(...filteredProductPrices)); // Maximum price from filtered products
+  //   }
     
-  };
+  // };
 
   const handleMinPriceChange = (event) => {
     setMinPrice(event.target.value);
@@ -178,21 +190,30 @@ function Search() {
 
   const handleCategoryChange = (event) => {
     setSelectedCategory(event.target.value);
-  };
 
+  };
+const uniqueProductIds = new Set();
   const filteredProducts = products.filter((product) => {
     
     const nameMatch = product.name.toLowerCase().includes(searchTerm.toLowerCase());
     const priceMatch =
       Number(product.price) >= Number(minPrice) && Number(product.price) <= Number(maxPrice);
-    const categoryMatch =
-      !selectedCategory || product.category === selectedCategory;
-    return nameMatch && priceMatch && categoryMatch;
+      console.log(selectedCategory)
+    const categoryMatch = !selectedCategory || (Number(product.category_id) == Number(selectedCategory));
+    console.log(categoryMatch)
+    console.log(uniqueProductIds)
+      if (nameMatch && priceMatch && categoryMatch ) {
+        if(!uniqueProductIds.has(product.product_id))
+        {uniqueProductIds.add(product.product_id); // Add ID if unique
+        return ( nameMatch && priceMatch && categoryMatch );}
+      } else {
+        return false; // Reject duplicate product
+      }
   });
 
   return (
     <div>
-      <input
+      {/* <input
         type="text"
         placeholder="Search products..."
         className="search"
@@ -200,14 +221,14 @@ function Search() {
       />
       <button className="search_button" onClick={handleSearchClick} style={{ cursor: 'pointer' }}>
    Search
-     </button>
+     </button> */}
       <br />
       <br />
       <div className="search_box">
 
       
       {searchClicked ? (
-        <div >
+        <div className="mx-5" >
           <label htmlFor="minPrice">Minimum Price:</label>
           <input
             type="number"
@@ -229,9 +250,15 @@ function Search() {
           <select id="category" value={selectedCategory} onChange={handleCategoryChange}>
             <option value="">All</option>
             {/* Replace with your actual category options */}
-            <option value="Electronics">Electronics</option>
-            <option value="Audio">Audio</option>
-            <option value="Appliances">Appliances</option>
+            
+             {categories.length > 0 ?(
+
+            categories.map((item)=>{
+              return <option value={item.category_id}>{item.category_name}</option>
+            })
+            
+            ):<></>
+            }
 
           </select>
         </div>

@@ -4,6 +4,7 @@ import hand_icon from '../Assets/hand_icon.png'
 import arrow_icon from '../Assets/arrow.png'
 import hero_image from '../Assets/hero_image2.png'
 
+
 const Hero = () => {
     return (
         <div className='hero'>
@@ -26,6 +27,7 @@ const Hero = () => {
                 <img src={hero_image} alt="" />
             </div>
         </div>
+       
     )
 }
 
