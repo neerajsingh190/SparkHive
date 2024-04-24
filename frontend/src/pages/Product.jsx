@@ -33,7 +33,7 @@ const Product = () => {
   
   return (
     <div>
-      <Breadcrums product={products}/>
+     {filteredProducts.length > 0 && <Breadcrums product={filteredProducts}/>}
       {filteredProducts.length > 0 && <ProductDisplay product={filteredProducts[0]} />}
       <DescriptionBox />
       {/* <RelatedProducts/> */}

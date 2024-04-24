@@ -6,6 +6,7 @@ export const ShopContext = createContext(null);
 const ShopContextProvider = (props) => {
 
   const [products,setProducts] = useState([]);
+  const [orders,setOrders] = useState([]);
   const [token,setToken] =useState("");
   
   const getDefaultCart = () => {
@@ -47,6 +48,20 @@ const ShopContextProvider = (props) => {
       .then((data) => 
       {data.map((items)=>setCartItems((prev) => ({ ...prev, [items.product_id]: prev[items.product_id] + items.quantity })))});
     }
+    if(localStorage.getItem("auth-token"))
+    {
+      fetch('http://localhost:3001/api/orderid',{
+        method: 'POST',
+        headers: {
+          Accept:'application/form-data',
+          'auth-token':`${localStorage.getItem("auth-token")}`,
+          'Content-Type':'application/json',
+        },
+        body: JSON.stringify(),
+      })
+      .then((resp) => resp.json())
+      .then((data) => setOrders(data));
+    }
 
 }, [])
   
@@ -71,20 +86,15 @@ const ShopContextProvider = (props) => {
     return totalItem;
   };
 
+
+
   const addToCart = async (itemId) => {
+   
     setCartItems((prev) => ({ ...prev, [itemId]: prev[itemId] + 1 }));
-    // const setCartItemsCallback = (callback) => {
-    //   setCartItems((prev) => ({ ...prev, [itemId]: prev[itemId] + 1 }));
-    // };
-
-    // await new Promise((resolve, reject) => {
-    //   setCartItemsCallback(()=>{
-    //     resolve();
-    //   });
-    // });
-
+   
     if(localStorage.getItem("auth-token"))
     {
+
       fetch('http://localhost:3001/addtocart', {
       method: 'POST',
       headers: {
@@ -92,12 +102,40 @@ const ShopContextProvider = (props) => {
         'auth-token':`${localStorage.getItem("auth-token")}`,
         'Content-Type':'application/json',
       },
-      body: JSON.stringify({"itemId":itemId, "quantity" : cartItems[itemId]}),
+      body: JSON.stringify({"itemId":itemId, "quantity" : cartItems[itemId]+1})
     })
       .then((resp) => resp.json())
       .then((data) => {console.log(data)});
     }
   };
+  // const addToCart = async (itemId) => {
+  //   // Update state first (synchronous)
+  //   setCartItems((prev) => ({ ...prev, [itemId]: prev[itemId] + 1 }));
+  
+  //   // Create a Promise that resolves immediately
+  //   const stateUpdatePromise = new Promise((resolve) => resolve());
+  
+  //   // Chain the API call after state update
+  //   return stateUpdatePromise.then(() => {
+  //     if (localStorage.getItem("auth-token")) {
+  //       return fetch('http://localhost:3001/addtocart', {
+  //           method: 'POST',
+  //           headers: {
+  //             Accept: 'application/form-data',
+  //             'auth-token': `${localStorage.getItem("auth-token")}`,
+  //             'Content-Type': 'application/json',
+  //           },
+  //           body: JSON.stringify({ "itemId": itemId, "quantity": cartItems[itemId] }),
+  //         })
+  //         .then((resp) => resp.json())
+  //         .then((data) => {
+  //           console.log(data);
+  //           return data; // You can return data from the API call here
+  //         });
+  //     }
+  //   });
+  // };
+  
 
   const removeFromCart = (itemId) => {
     setCartItems((prev) => ({ ...prev, [itemId]: prev[itemId] - 1 }));
@@ -117,7 +155,7 @@ const ShopContextProvider = (props) => {
     }
   };
 
-  const contextValue = {products, getTotalCartItems, cartItems, addToCart, removeFromCart, getTotalCartAmount,token };
+  const contextValue = {orders, products, getTotalCartItems, cartItems, addToCart, removeFromCart, getTotalCartAmount,token };
   return (
     <ShopContext.Provider value={contextValue}>
       {props.children}

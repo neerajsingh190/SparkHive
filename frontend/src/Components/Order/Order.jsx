@@ -156,7 +156,6 @@ const onChangeHandler = (event) => {
 //     }
 //   };
 const placeOrder = async (amount,formData) => {
-  
       // 2. Create Order on Backend
       await axios.post("http://localhost:3001/api/checkout",{amount})
       .then(
@@ -215,8 +214,8 @@ useEffect(() => {
 
     return (
   
-      <form className='place-order'>
-          <div className="place-order-left">
+      <form className='place-order mx-4'>
+          <div className="place-order-left px-6">
               <p className='title'>Delivery Information</p>
               <div className="multi-field">
                   <input type="text" name='firstName' onChange={onChangeHandler} value={formData.firstName} placeholder='First name' required className={errors.firstName && 'error-input'}/>

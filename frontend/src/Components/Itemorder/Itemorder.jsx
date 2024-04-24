@@ -8,16 +8,18 @@ import { ShopContext } from "../../Context/ShopContext";
 import { useParams } from 'react-router-dom';
 
 const Itemorder = () => {
+
+
     const [formData, setFormData] = useState({
         firstName: '',
         lastName: '',
-        addressLine1: '', // Use address_line1 from schema
-        addressLine2: '', // Use address_line2 from schema
+        addressLine1: '', 
+        addressLine2: '', 
         city: '',
         state: '',
-        postalCode: '', // Use postal_code from schema
+        postalCode: '', 
         phoneNumber: '',
-        isDefault: false, // Use is_default from schema (default to false)
+        isDefault: false, 
     });
 
     const {itemid} = useParams();

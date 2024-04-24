@@ -46,7 +46,7 @@ const ProductDisplay = (props) => {
         <div className="productdisplay-right-description">
           {product.description}
         </div>
-        <div className="productdisplay-right-size">
+        {/* <div className="productdisplay-right-size">
           <h1>Select Size</h1>
           <div className="productdisplay-right-sizes">
             <div>S</div>
@@ -55,7 +55,7 @@ const ProductDisplay = (props) => {
             <div>XL</div>
             <div>XXL</div>
           </div>
-        </div>
+        </div> */}
         <button className="add-to-cart" onClick={()=>{addToCart(product.product_id)}}>ADD TO CART</button>
         
   <button
@@ -66,7 +66,7 @@ const ProductDisplay = (props) => {
         Buy Now
       </button>
     
-        <p className="productdisplay-right-category"><span>Category :</span> {product.category}</p>
+        <p className="productdisplay-right-category"><span>Category :</span> {product.s}</p>
         <p className="productdisplay-right-category"><span>Tags :</span> Modern, Latest</p>
       </div>
     </div>

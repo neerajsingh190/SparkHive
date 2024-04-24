@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import "./CSS/LoginSignup.css";
 import { useNavigate } from 'react-router-dom';
+import { FaEye } from "react-icons/fa";
+import { FaEyeSlash } from "react-icons/fa";
 
 
 
@@ -20,7 +22,7 @@ const LoginSignup = () => {
     }
     return numberRegex.test(number);
   };
-
+  const [showPassword,setShowPassword] = useState(false)
   const [state,setState] = useState("Login");
   const [formData,setFormData] = useState({firstname:"",address:"",phonenumber:"",lastname:"" ,username:"",zipcode:"" ,email:"",password:""}); // default form data ( object with key value pair )
   const [isValid, setIsValid] = useState(true);
@@ -80,6 +82,8 @@ const LoginSignup = () => {
         localStorage.setItem('auth-token',dataObj.token);
         localStorage.setItem('isLoggedIn', true);
         localStorage.setItem('firstname',dataObj.firstname);
+        localStorage.setItem('id',dataObj.id);
+
         window.location.replace("/");
         // navigate('/');
       }
@@ -123,8 +127,22 @@ const LoginSignup = () => {
          {state==="Sign up"?<><input type="tel" placeholder="Phone number" pattern="[0-9]{10}" required name="phonenumber" value={formData.phonenumber} onChange={changeHandler}/></>:<></>}
          {isValidNumber ? null : <p className="error">{Numerror}</p>}
          <input type="email" placeholder="Email address" name="email"  onChange={changeHandler}/> 
-         <input type="password" placeholder="Password" name="password" onChange={changeHandler}/> 
-         
+         <div className='bg-slate-100 p-0 relative'>
+         <input type={showPassword ? "text" : "password"} placeholder="Password" name="password" onChange={changeHandler}/> 
+         <div  className=' right-3 top-4 absolute cursor-pointer text-xl' onClick={()=>setShowPassword((preve)=>!preve)}>
+                                    <span>
+                                        {
+                                            showPassword ? (
+                                                <FaEyeSlash/>
+                                            )
+                                            :
+                                            (
+                                                <FaEye/>
+                                            )
+                                        }
+                                    </span>
+                                </div>
+         </div>
          </div>
 
          <button onClick={()=>{state==="Login"?login():signup()}}>Continue</button>
