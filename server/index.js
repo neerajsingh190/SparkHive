@@ -16,8 +16,8 @@ app.use(cors());
 const path = require("path");
 app.use(cookieParser())
 const {promisify} = require('util')
-
-
+app.use(express.urlencoded({extended: true}));
+const sharedData = require('./sharedData');
 
 const storage = multer.diskStorage({
   destination: './images',
@@ -78,6 +78,8 @@ app.post('/api/checkout', async(req, res) => {
       throw new Error("Invalid amount provided.");
     }
      console.log(amount)
+     sharedData.setAmount(amount);
+
      const instance = new Razorpay({
       key_id: process.env.RAZORPAY_API_KEY,
       key_secret: process.env.RAZORPAY_API_SECRET
@@ -160,7 +162,6 @@ db.query(checkDuplicateSql, [customer_id, addressLine1, city, postalCode], (err,
       )
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
-
     db.query(sql, [
       customer_id,
       firstName,
@@ -177,6 +178,13 @@ db.query(checkDuplicateSql, [customer_id, addressLine1, city, postalCode], (err,
         throw err; // Re-throw the error for handling in the catch block
       }
 
+      ship_id = db.query(`SELECT shipping_address_id
+        FROM shipping_address
+        WHERE customer_id = ?
+        ORDER BY created_at DESC
+        LIMIT 1`,customer_id);
+      sharedData.setid(ship_id);
+      
       res.json({ success: true, message: 'Shipping address stored successfully' });
     });
   }
@@ -267,6 +275,7 @@ db.query(checkDuplicateSql, [customer_id, addressLine1, city, postalCode], (err,
 // });
 app.post('/api/paymentverification',(req,res)=>{
   try {
+    
     console.log("header",req.body);
     const { razorpay_order_id, razorpay_payment_id, razorpay_signature}=req.body;
     
@@ -275,55 +284,60 @@ app.post('/api/paymentverification',(req,res)=>{
       .createHmac("sha256", "dKndWbYgPJHgFRoQRpr4VjHY")
       .update(body.toString())
       .digest("hex");
-    // console.log("sign recieved", razorpay_signature);
-    // console.log("sign generated", expectedSignature);
+    
     const isAuthentic = razorpay_signature === expectedSignature;
-    // console.log("isAuthentic",isAuthentic);
-    if (isAuthentic) {
-      //database comes here
-        // conn.query("SELECT ID FROM Customers WHERE UserID=?",[bookingDatas.userId], (err, rows, fields) => {
-        //   const CustomerID = rows[0].ID;
-        //   console.log("CustomerId",CustomerID)
-        //       conn.query("INSERT INTO saloon.appointments(CustomerID,BranchID,Date,Status,SlotTime)VALUES(?,?,?,'Booked',?)",[CustomerID,bookingDatas.branchId,bookingDatas.date,bookingDatas.slot],(err,rows,fields)=>{
-        //           if(!err)
-        //           {
-        //               console.log("Rows",rows)
-        //               if(Array.isArray(bookingDatas.services)){
-        //                   bookingDatas.services.forEach(element => {
-        //                       console.log("Services into database ",element)
-        //                       conn.query("INSERT INTO AppointmentServices(AppointmentID, ServiceID) VALUES(?,?)", [rows.insertId, element.sId], (err,rows, fields)=>{
-        //                           if(err){
-        //                               console.log(err);
-        //                           }
-        //                       })
+ 
+    // if (isAuthentic) {
+    //   //database comes here
+    //     // conn.query("SELECT ID FROM Customers WHERE UserID=?",[bookingDatas.userId], (err, rows, fields) => {
+    //     //   const CustomerID = rows[0].ID;
+    //     //   console.log("CustomerId",CustomerID)
+    //     //       conn.query("INSERT INTO saloon.appointments(CustomerID,BranchID,Date,Status,SlotTime)VALUES(?,?,?,'Booked',?)",[CustomerID,bookingDatas.branchId,bookingDatas.date,bookingDatas.slot],(err,rows,fields)=>{
+    //     //           if(!err)
+    //     //           {
+    //     //               console.log("Rows",rows)
+    //     //               if(Array.isArray(bookingDatas.services)){
+    //     //                   bookingDatas.services.forEach(element => {
+    //     //                       console.log("Services into database ",element)
+    //     //                       conn.query("INSERT INTO AppointmentServices(AppointmentID, ServiceID) VALUES(?,?)", [rows.insertId, element.sId], (err,rows, fields)=>{
+    //     //                           if(err){
+    //     //                               console.log(err);
+    //     //                           }
+    //     //                       })
                               
-        //                   });
-        //               }
-        //               else {
-        //                   conn.query("INSERT INTO AppointmentServices (AppointmentID, ServiceID) VALUES(?,?)", [rows.insertId, bookingDatas.services.sId], (err,rows, fields)=>{})
-        //               }
-        //               // conn.query("select sum(ser.Price) as TotalPrice from appointmentservices as apSer join services as ser on apSer.ServiceID=ser.sId where AppointmentID=?",[rows.insertId],(err,serAmount,fields)=>{
-        //                   conn.query("INSERT INTO payments(AppointmentID,Amount,PaymentMode)values(?,?,?)",[rows.insertId,bookingDatas.totalAmount,bookingDatas.paymentMode],(err,ser,fields)=>{
-        //                       if(err){
-        //                           console.log(err);
-        //                       }
-        //                       else{
-          //                       }   
-          //                   })
-          //               // })
+    //     //                   });
+    //     //               }
+    //     //               else {
+    //     //                   conn.query("INSERT INTO AppointmentServices (AppointmentID, ServiceID) VALUES(?,?)", [rows.insertId, bookingDatas.services.sId], (err,rows, fields)=>{})
+    //     //               }
+    //     //               // conn.query("select sum(ser.Price) as TotalPrice from appointmentservices as apSer join services as ser on apSer.ServiceID=ser.sId where AppointmentID=?",[rows.insertId],(err,serAmount,fields)=>{
+    //     //                   conn.query("INSERT INTO payments(AppointmentID,Amount,PaymentMode)values(?,?,?)",[rows.insertId,bookingDatas.totalAmount,bookingDatas.paymentMode],(err,ser,fields)=>{
+    //     //                       if(err){
+    //     //                           console.log(err);
+    //     //                       }
+    //     //                       else{
+    //       //                       }   
+    //       //                   })
+    //       //               // })
           
-          //           }
-          //     else{
-            //         console.log(err);
-            //     }                
-            // })
+    //       //           }
+    //       //     else{
+    //         //         console.log(err);
+    //         //     }                
+    //         // })
             
-            //   }
+    //         //   }
             
             
-            // )
-          //   res.redirect(http://localhost:3001/paymentsuccess?reference=${razorpay_payment_id})
-           } 
+            
+    //       //   res.redirect(http://localhost:3001/paymentsuccess?reference=${razorpay_payment_id}
+    //        } 
+    if(isAuthentic){
+  
+      res.redirect(
+        `http://localhost:3000/paymentsuccess?reference=${razorpay_payment_id}`
+      );
+    }
           else {
             // console.log("verification",req.body)
             return res.json({ Status: false });
@@ -332,6 +346,8 @@ app.post('/api/paymentverification',(req,res)=>{
     console.log(error);
   }
 })
+
+
 app.post('/api/add',(req,res)=>{
   let product = req.body;
   let success = false;
@@ -1021,6 +1037,21 @@ if(quantity==1){
     res.status(500).send({ message: 'Internal server error' });
   }
 })
+
+app.get('/api/reviews/:productId', async (req, res) => { // Use dynamic route parameter
+  try {
+    console.log(req.params.productId);
+
+    const result =  db.query('SELECT review, rating FROM reviews WHERE product_id = ?', [req.params.productId],(err,result)=>{
+      
+      console.log("no review",result);
+      return res.status(200).json(result); 
+    }); // Use route parameter
+  } catch (error) {
+    console.error(error);
+    res.status(500).send('Error fetching reviews');
+  }
+});
 
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);

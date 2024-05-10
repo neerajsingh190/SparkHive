@@ -144,6 +144,7 @@ const {value} = useParams();
   const [selectedCategory, setSelectedCategory] = useState("");
 
   const [searchClicked, setSearchClicked] = useState(true);
+
   useEffect(() => {
     const fetchData = async () => {
       const response = await fetch("http://localhost:3001/api/catproducts");
@@ -193,6 +194,7 @@ const {value} = useParams();
 
   };
 const uniqueProductIds = new Set();
+
   const filteredProducts = products.filter((product) => {
     
     const nameMatch = product.name.toLowerCase().includes(searchTerm.toLowerCase());
@@ -249,7 +251,7 @@ const uniqueProductIds = new Set();
           <label htmlFor="category">Category:</label>
           <select id="category" value={selectedCategory} onChange={handleCategoryChange}>
             <option value="">All</option>
-            {/* Replace with your actual category options */}
+           
             
              {categories.length > 0 ?(
 

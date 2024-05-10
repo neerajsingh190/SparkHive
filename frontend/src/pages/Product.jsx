@@ -35,7 +35,7 @@ const Product = () => {
     <div>
      {filteredProducts.length > 0 && <Breadcrums product={filteredProducts}/>}
       {filteredProducts.length > 0 && <ProductDisplay product={filteredProducts[0]} />}
-      <DescriptionBox />
+      <DescriptionBox productId={productId} />
       {/* <RelatedProducts/> */}
     </div>
   )

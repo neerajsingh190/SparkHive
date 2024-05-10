@@ -156,6 +156,21 @@ const onChangeHandler = (event) => {
 //     }
 //   };
 const placeOrder = async (amount,formData) => {
+
+    if(localStorage.getItem("auth-token"))
+    {
+      fetch('http://localhost:3001/api/storeshippingaddress', {
+      method: 'POST',
+      headers: {
+        Accept:'application/form-data',
+        'auth-token':`${localStorage.getItem("auth-token")}`,
+        'Content-Type':'application/json',
+      },
+      body: JSON.stringify(formData),
+    })
+    .then((err) => console.log(err))
+    }
+
       // 2. Create Order on Backend
       await axios.post("http://localhost:3001/api/checkout",{amount})
       .then(
@@ -163,11 +178,11 @@ const placeOrder = async (amount,formData) => {
               console.log("response from checkout id:",res.data.order.id);
   
   
-      //3. Create Razorpay Payment Object
+       //3. Create Razorpay Payment Object
     
-      const options = {
+       const options = {
         key:"rzp_test_GHSiaTeuXqZLCT",
-        amount:4000,
+        amount:amount*100,
         currency: "INR",
         name: "NEERAJ SINGH",
         description: "Tutorial of RazorPay",
@@ -195,6 +210,7 @@ const placeOrder = async (amount,formData) => {
        razorpay.open(); // Initiate payment flow
 
           }
+        
     ).catch(
       error=>{console.log(error)
       }

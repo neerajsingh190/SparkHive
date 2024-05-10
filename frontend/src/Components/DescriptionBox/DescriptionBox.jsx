@@ -1,32 +1,51 @@
-import React from "react";
+import React,{useState,useEffect} from "react";
 import "./DescriptionBox.css";
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faStar } from '@fortawesome/free-solid-svg-icons';
 
-const DescriptionBox = () => {
+const DescriptionBox = ({productId}) => {
+  const [reviews, setReviews] = useState([]);
+
+  useEffect(() => {
+    const fetchReviews = async () => {
+      try {
+        const response = await fetch(`http://localhost:3001/api/reviews/${productId}`); // Use product ID prop
+        const fetchedReviews = await response.json();
+        setReviews(fetchedReviews);
+      } catch (error) {
+        console.log(reviews)
+        console.error(error);
+      }
+    };
+
+    fetchReviews(); // Call on component mount or update
+  }, [productId]); 
+
   return (
     <div className="descriptionbox">
-      <div className="descriptionbox-navigator">
-        <div className="descriptionbox-nav-box">Description</div>
-        <div className="descriptionbox-nav-box fade">Reviews (122)</div>
-      </div>
-      <div className="descriptionbox-description">
-        <p>
-          An e-commerce website is an online platform that facilitates the
-          buying and selling of products or services over the internet. It
-          serves as a virtual marketplace where businesses and individuals can
-          showcase their products, interact with customers, and conduct
-          transactions without the need for a physical presence. E-commerce
-          websites have gained immense popularity due to their convenience,
-          accessibility, and the global reach they offer.
-        </p>
-        <p>
-          E-commerce websites typically display products or services along with
-          detailed descriptions, images, prices, and any available variations
-          (e.g., sizes, colors). Each product usually has its own dedicated page
-          with relevant information.
-        </p>
-      </div>
+    <div className="descriptionbox-navigator">
+      <div className="descriptionbox-nav-box fade">Reviews ({reviews.length})</div>
     </div>
-  );
+    <div className="descriptionbox-description">
+      {reviews.length > 0 && (
+        <ul style={{display:"block"}} className="review-list">
+          {reviews.map((review) => (
+            <li key={review.id || review._id} className="review-item">
+              <div className="star-rating">
+                {[...Array(review.rating)].map((star, index) => (
+                  <FontAwesomeIcon icon={faStar} key={index} className="star-icon" />
+                ))}
+              </div>
+              <p className="review-content">{review.review}</p>
+            </li>
+            
+          ))}
+        </ul>
+      )}
+    </div>
+  </div>
+
+    );
 };
 
 export default DescriptionBox;

@@ -55,6 +55,7 @@ const Navbar = () => {
     fetchUserData();
   }, []);
   const navigate = useNavigate();
+  
   const handleKeyDown = (event) => {
     if (event.keyCode === 13) {
       // Trigger your search function here using the searchTerm state
@@ -107,11 +108,11 @@ console.log(searchTerm)
                   <Link to={"/"} className='inline-block px-4 font-semibold text-gray-700 hover:text-black duration-200'>Home</Link>
                 </li>
                 <li>
-                  <Link to={"/shop"} className='inline-block px-4 font-semibold text-gray-700 hover:text-black'>Categories</Link>
+                  <Link to={"/search/a"} className='inline-block px-4 font-semibold text-gray-700 hover:text-black'>Categories</Link>
                 </li>
-                <li>
-                  <Link to={"/about"} className='inline-block px-4 font-semibold text-gray-700 hover:text-black'>About</Link>
-                </li>
+                {/* <li>
+                  <Link to={"/"} className='inline-block px-4 font-semibold text-gray-700 hover:text-black'>About</Link>
+                </li> */}
                 {
                   isLoggedIn?(
 

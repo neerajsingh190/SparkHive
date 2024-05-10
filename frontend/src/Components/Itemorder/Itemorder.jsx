@@ -10,20 +10,21 @@ import { useParams } from 'react-router-dom';
 const Itemorder = () => {
 
 
-    const [formData, setFormData] = useState({
-        firstName: '',
-        lastName: '',
-        addressLine1: '', 
-        addressLine2: '', 
-        city: '',
-        state: '',
-        postalCode: '', 
-        phoneNumber: '',
-        isDefault: false, 
-    });
-
+  const [formData, setFormData] = useState({
+    firstName: '',
+    lastName: '',
+    addressLine1: '', // Use address_line1 from schema
+    addressLine2: '', // Use address_line2 from schema
+    city: '',
+    state: '',
+    postalCode: '', // Use postal_code from schema
+    phoneNumber: '',
+    isDefault: false, // Use is_default from schema (default to false)
+  });
+    const [isValidForm, setIsValidForm] = useState(false);
     const {itemid} = useParams();
-    
+    const [errors, setErrors] = useState({});
+
 const { products, cartItems } = useContext(ShopContext);
 
 const navigate = useNavigate();
@@ -32,6 +33,21 @@ const onChangeHandler = (event) => {
     const name = event.target.name
     const value = event.target.value
     setFormData(formData => ({ ...formData, [name]: value }))
+
+    setErrors({
+      ...(errors || {}), // Preserve existing errors
+      [name]: !value ? 'This field is required.' : '',
+    });
+
+    const isValid =
+      formData.firstName &&
+      formData.lastName &&
+      formData.addressLine1 &&
+      formData.city &&
+      formData.state &&     
+      formData.postalCode &&
+      formData.phoneNumber;
+    setIsValidForm(isValid);
 }
 
 
@@ -43,29 +59,67 @@ function totalForProduct() {
   
 
 
-const placeOrder = async (e) => {
-    // e.preventDefault()
-    // let orderItems = [];
-    // products.map(((item) => {
-    //     if (cartItems[item._id] > 0) {
-    //         let itemInfo = item;
-    //         itemInfo["quantity"] = cartItems[item._id];
-    //         orderItems.push(itemInfo)
-    //     }
-    // }))
-    // let orderData = {
-    //     address: formData,
-    //     items: orderItems,
-    //     amount: totalForProduct(itemid,products) + 5,
-    // let response = await axios.post(url + "/api/order/place", orderData, { headers:  token });
-    // if (response.data.success) {
-        //     const { session_url } = response.data;
-        //     window.location.replace(session_url);
-        // }
-        // else {
-            //     toast.error("Something Went Wrong")
-            // }
+  const placeOrder = async (amount,formData) => {
+
+    if(localStorage.getItem("auth-token"))
+    {
+      fetch('http://localhost:3001/api/storeshippingaddress', {
+      method: 'POST',
+      headers: {
+        Accept:'application/form-data',
+        'auth-token':`${localStorage.getItem("auth-token")}`,
+        'Content-Type':'application/json',
+      },
+      body: JSON.stringify(formData),
+    })
+    .then((err) => console.log(err))
+    }
+
+      // 2. Create Order on Backend
+      await axios.post("http://localhost:3001/api/checkout",{amount})
+      .then(
+          res=>{
+              console.log("response from checkout id:",res.data.order.id);
+  
+  
+       //3. Create Razorpay Payment Object
+    
+       const options = {
+        key:"rzp_test_GHSiaTeuXqZLCT",
+        amount:amount*100,
+        currency: "INR",
+        name: "NEERAJ SINGH",
+        description: "Tutorial of RazorPay",
+        image: "",
+        order_id: res.data.order.id,
+        callback_url: "http://localhost:3001/api/paymentverification", 
+        prefill: {
+          name: "NEERAJ SINGH",
+          email: "neeraj199322@gmail.com",
+          contact: "9354010210"
+        },
+        notes: {
+          address: "Razorpay Corporate Office"
+        },
+        theme: {
+          color: "#121212"
         }
+      };
+    
+
+  
+      const razorpay = new window.Razorpay(options);
+  
+      // 4. Open Razorpay Payment Page
+       razorpay.open(); // Initiate payment flow
+
+          }
+        
+    ).catch(
+      error=>{console.log(error)
+      }
+  )
+  };
 
 
 useEffect(() => {
@@ -80,7 +134,7 @@ useEffect(() => {
 
     return (
   
-      <form onSubmit={placeOrder} className='place-order'>
+      <form className='place-order mx-4'>
           <div className="place-order-left">
               <p className='title'>Delivery Information</p>
               <div className="multi-field">
@@ -121,12 +175,23 @@ useEffect(() => {
                   <div>
                       <div className="cart-total-details"><p>Subtotal</p><p>INR {totalForProduct()}</p></div>
                       <hr />
-                      <div className="cart-total-details"><p>Delivery Fee</p><p>INR {totalForProduct() === 0 ? 0 : 5}</p></div>
+                      <div className="cart-total-details"><p>Delivery Fee</p><p>INR {totalForProduct() === 0 ? 0 : 0.00}</p></div>
                       <hr />
                       <div className="cart-total-details"><b>Total</b><b>INR {totalForProduct() === 0 ? 0 : totalForProduct() + 5}</b></div>
                   </div>
               </div>
-              <button className='place-order-submit' type='submit'>Proceed To Payment</button>
+              <button
+        className='place-order-submit'
+        disabled={!isValidForm} // Disable button if form is not valid
+        onClick={(event) => {
+          event.preventDefault();
+          if (isValidForm) {
+            placeOrder(totalForProduct() + 5,formData);
+          }
+        }}
+      >
+        Proceed To Payment
+      </button>
           </div>
       </form>
   )

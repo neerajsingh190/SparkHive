@@ -3,6 +3,7 @@ import {useState,useEffect} from 'react'
 import './Popular.css'
 import Item from '../Item/Item'
 import axios from 'axios';
+import { Link } from 'react-router-dom';
 
 
 const Popular = ({item ,id}) => {
@@ -35,10 +36,16 @@ const Popular = ({item ,id}) => {
     <div className='popular'>
       <h1 className='bg-red-500 rounded px-5 py-3 text-white ' style={{color:"white"}}>Best of {item} </h1>
 
-      <div className="popular-item">
+      <div className="popular-item flex">
         {
             products.map((item,i)=>{
-              return(<Item key={i} image ={item.image_url} description = {item.description} name = {item.name} price = {item.price} offer_price ={item.offer_price}/>)
+              return(
+        
+                <Link  to ={`/product/${item.product_id}`}>
+               
+              <Item key={i} image ={item.image_url} description = {item.description} name = {item.name} price = {item.price} offer_price ={item.offer_price}/> 
+              
+              </Link>)
                 // return <Item key={i} id = {item.product_id} name = {item.name} image = {item.image} new_price = {item.new_price} old_price = {item.old_price}/>
             })
         }
